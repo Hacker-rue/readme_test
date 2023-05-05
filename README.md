@@ -1,37 +1,33 @@
 # Hyperledger bridge server
 
 ## How to run
-Запускать bridge-server необходимо на сервере с нодой hyperledger fabric.
+You need to run bridge-server on a server with a hyperledger fabric node.
 
-Для запуска сервера необходимо подготовить файл конфигурации подключения к ноде fabric, сертификат и секеретный ключь, для подписания транзакций.
+To start the server, you need to prepare a configuration file for connecting to the fabric node, a certificate and a secret key for signing transactions.
 
 ### Prepare certificates
 
-Для получения сертификаты и приватного ключа, необходимо обратиться к администратору вашей организации, к которой будет подключаться сервер. Сеть hyperledger может использовать разные центры сертификации, поэтому нельзя привести единый пример для получения сертификатов аккаунта.
+To obtain a certificate and a private key, you need to contact the administrator of your organization to which the server will connect. The hyperledger network can use different certification authorities, so it is impossible to give a single example for obtaining account certificates.
 
-Сертификат и секретный ключь необходимо положить в папку: `./wallets/{VAR}/`
+The certificate and the secret key must be put in the folder: `./wallets/{VAR}/`
 
-**VAR**=папка где будут лежать сертификаты аккаунта, *Default*: "User"
+**VAR**=the folder where the account certificates will be located, *Default*: "User"
 
-***ВАЖНО***: Изначально сертификат и секретный ключь могут иметь другое название.
+The certificate file must have a name: `cert.pem`
 
-Файл сертификата должен иметь название: `cert.pem`
-
-Файл серкетного ключа должен иметь название: `key.pem`
+The secret key file must have a name: `key.pem`
 
 ### Prepare config
 
-Конфигурационный файл для подключения к сети hyperledger. При использование тестовой сети из репозитория: [fabric-samples](https://github.com/hyperledger/fabric-samples), он генерируеться автоматически. При подключение к рабочей сети, его придеться писать в ручную.
+The configuration file must be placed in the folder `./config/`
 
-Файл конфигурации необходимо положить в папку `./config/`
-
-Пример конфигурационого файла:
+Example of a configuration file:
 ```json
 {
     "name": "test-network-org1",
     "version": "1.0.0",
     "client": {
-        //название организации к ноде которой, будет подключаться сервер
+        //the name of the organization to which the server will connect to the node
         "organization": "Org1",
         "connection": {
             "timeout": {
@@ -42,11 +38,11 @@
         }
     },
     "channels": {
-        //название канала с которым работает сервер
+        //the name of the channel the server is working with
         "mychannel": {}
     },
     "organizations": {
-        // настройки организации к которой подключается сервер
+        //settings of the organization to which the server is connected
         "Org1": {
             "mspid": "Org1MSP",
             "peers": [
@@ -57,7 +53,7 @@
             ]
         }
     },
-    //настройки ноды к которой подключается сервер
+    //settings of the node to which the server is connected
     "peers": {
         "peer0.org1.example.com": {
             "url": "grpcs://localhost:7051",
@@ -70,7 +66,7 @@
             }
         }
     },
-    //настройки центра сертификации организации
+    //organization's certification authority settings
     "certificateAuthorities": {
         "ca.org1.example.com": {
             "url": "https://localhost:7054",
@@ -86,36 +82,36 @@
 }
 ```
 
-После настройки конфигурации, необходимо настроить .env
+After configuring the configuration, you need to configure .env
 
-**CONFIG_NAME**=название файла конфигурации, который лежит в `./config/`
+**CONFIG_NAME**=the name of the configuration file that lies in `./config/`
 
-**USER_NAME**=название папки где лежат сертификаты аккаунта
+**USER_NAME**=the name of the folder where the account certificates are located
 
-**VAULT_CONTRACT_NAME**=название чейнкода vault
+**VAULT_CONTRACT_NAME**=the name of the vault chaincode
 
 
-**GRPC_IP**=ip по которому будет работать сервер
+**GRPC_IP**=the ip on which the server will work
 
-**GRPC_PORT**=порт по которому будет работать сервер
+**GRPC_PORT**=the port on which the server will work
 
-Теперь можно запускать сервер.
+Now you can start the server.
 
 ### Starting the server
 
-Для запуска вам понадобится версия node >16.X
+To run, you will need node version >16.X
 
-Скачиваем зависимости: 
+Downloading dependencies: 
 ```
 npm install
 ```
 
-Скаичваем модуль pm2:
+Download the pm2 module:
 ```
 npm install -g pm2
 ```
 
-Запускаем проект:
+Launching the project:
 ```
 pm2 start index.js
 ```
@@ -123,7 +119,7 @@ pm2 start index.js
 
 ## Architecture overview
 
-Сервер является модулем реле. Он связываеться с сетью hyperledger fabric. Его цель доставать, проверять и подписываеть транзакции.
+The server is a relay module. It communicates with the hyperledger fabric network. Its purpose is to get, verify and sign transactions.
 
-При запуске, он создает акаунт rele в hyperladger. С помощью него он подписывает транзакции, и на нем хранятся токены, которые проходят через bridg. Это сделано из-за ограничения hyperledger, в нем чейнкод не может хранить токены как в EVM сетях.
-Сервер работает в режиме ожидания запросов от rele. Сервер работает по системе gRPC.
+At startup, it creates a rele account in hyperladger. With it, he signs transactions, and tokens that pass through the bridge are stored on it. This is done due to the hyperledger limitation, the chaincode cannot store tokens as in EVM networks.
+The server is in standby mode for requests from rele. The server runs on the gRPC system.
